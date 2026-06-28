@@ -11,6 +11,8 @@ import {
   Loader,
   Eye,
   X,
+  Briefcase,
+  Search
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -101,11 +103,10 @@ export default function MyProposals() {
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`px-4 py-2 rounded-lg font-medium transition capitalize ${
-                filterStatus === status
+              className={`px-4 py-2 rounded-lg font-medium transition capitalize ${filterStatus === status
                   ? "bg-indigo-600 text-white"
                   : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-              }`}
+                }`}
             >
               {status === "all" ? "All Proposals" : status}
               {status !== "all" && (
@@ -168,10 +169,10 @@ export default function MyProposals() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                   <div className="flex-1">
                     <h2 className="text-xl font-bold text-slate-900">
-                      {proposal.job?.title || "Job Title"}
+                      {proposal.Job?.title || "Job Title"}
                     </h2>
                     <p className="text-slate-600 mt-2 line-clamp-2">
-                      {proposal.job?.description || "Job description"}
+                      {proposal.Job?.description || "Job description"}
                     </p>
 
                     {/* Proposal Details */}
@@ -213,116 +214,128 @@ export default function MyProposals() {
 
       {/* Proposal Details Modal */}
       {selectedProposal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Proposal Details</h2>
-              <button
-                onClick={() => setSelectedProposal(null)}
-                className="p-2 hover:bg-white/20 rounded-lg transition"
-              >
-                <X size={24} />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-500/25 backdrop-blur-sm p-4">
+          <div className="w-full max-w-4xl bg-white rounded-3xl overflow-hidden shadow-xl border border-slate-200">
 
-            {/* Content */}
-            <div className="p-8 space-y-6 max-h-[70vh] overflow-auto">
-              {/* Job Title */}
+            {/* Header */}
+            <div className="bg-white px-7 py-6 border-b border-slate-100 flex justify-between items-start gap-4">
               <div>
-                <h3 className="text-sm text-slate-600 font-semibold">
-                  Job Title
-                </h3>
-                <p className="text-lg font-bold mt-1">
-                  {selectedProposal.job?.title}
+                <span className="inline-block text-xs font-semibold px-3 py-1 rounded-md bg-blue-50 text-blue-500 uppercase tracking-wide mb-2">
+                  Proposal
+                </span>
+                <h2 className="text-xl font-semibold text-slate-900 leading-snug mb-1">
+                  {selectedProposal.Job?.title}
+                </h2>
+                <p className="text-sm text-slate-500">
+                  Client: <span className="text-slate-900 font-medium">{selectedProposal.Job?.User?.name}</span>
                 </p>
               </div>
 
-              {/* Status */}
-              <div>
-                <h3 className="text-sm text-slate-600 font-semibold">Status</h3>
-                <div className="mt-2">{getStatusBadge(selectedProposal.status)}</div>
+              <button
+                onClick={() => setSelectedProposal(null)}
+                className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-500 transition flex-shrink-0"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-7 py-6 max-h-[420px] overflow-y-auto bg-white">
+
+              {/* Status Badge */}
+              <div className="mb-5">
+                {getStatusBadge(selectedProposal.status)}
               </div>
 
-              {/* Bid Amount */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-sm text-slate-600 font-semibold">
-                    Your Bid
-                  </h3>
-                  <p className="text-lg font-bold mt-1">
-                    ₹{selectedProposal.bidAmount?.toLocaleString()}
+              {/* Metric Cards */}
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <DollarSign className="text-blue-500 mb-2" size={18} />
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Your bid</p>
+                  <p className="text-xl font-bold text-slate-900">
+                    ₹{Number(selectedProposal.bidAmount).toLocaleString("en-IN")}
                   </p>
                 </div>
-                <div>
-                  <h3 className="text-sm text-slate-600 font-semibold">
-                    Delivery Time
-                  </h3>
-                  <p className="text-lg font-bold mt-1">
+
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <Briefcase className="text-green-500 mb-2" size={18} />
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Budget</p>
+                  <p className="text-xl font-bold text-slate-900">
+                    ₹{Number(selectedProposal.Job?.budget).toLocaleString("en-IN")}
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <Clock className="text-orange-500 mb-2" size={18} />
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">Delivery</p>
+                  <p className="text-xl font-bold text-slate-900">
                     {selectedProposal.deliveryDays} days
                   </p>
                 </div>
               </div>
 
+              {/* Divider */}
+              <div className="h-px bg-slate-100 mb-6" />
+
               {/* Cover Letter */}
-              <div>
-                <h3 className="text-sm text-slate-600 font-semibold">
-                  Cover Letter
-                </h3>
-                <p className="text-slate-700 mt-2 bg-slate-50 p-4 rounded-lg">
-                  {selectedProposal.coverLetter}
-                </p>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                Your proposal
+              </p>
+              <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 text-sm text-slate-600 leading-relaxed mb-6">
+                {selectedProposal.coverLetter}
               </div>
 
-              {/* Submitted Date */}
-              <div>
-                <h3 className="text-sm text-slate-600 font-semibold">
-                  Submitted
-                </h3>
-                <p className="text-slate-700 mt-1">
-                  {new Date(selectedProposal.createdAt).toLocaleString()}
-                </p>
+              {/* Job Details */}
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                Job details
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <p className="text-xs text-slate-400 mb-1">Budget type</p>
+                  <p className="text-sm font-semibold text-slate-900">{selectedProposal.Job?.budgetType}</p>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <p className="text-xs text-slate-400 mb-1">Job status</p>
+                  <p className="text-sm font-semibold text-slate-900">{selectedProposal.Job?.status}</p>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <p className="text-xs text-slate-400 mb-1">Submitted</p>
+                  <p className="text-sm font-semibold text-slate-900">
+                    {new Date(selectedProposal.createdAt).toLocaleString("en-IN")}
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <p className="text-xs text-slate-400 mb-1">Proposal ID</p>
+                  <p className="text-sm font-semibold text-slate-900">#{selectedProposal.id}</p>
+                </div>
               </div>
 
-              {/* Job Category */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-sm text-slate-600 font-semibold">
-                    Category
-                  </h3>
-                  <p className="text-slate-700 mt-1">
-                    {selectedProposal.job?.category}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm text-slate-600 font-semibold">
-                    Experience Level
-                  </h3>
-                  <p className="text-slate-700 mt-1">
-                    {selectedProposal.job?.experienceLevel}
-                  </p>
-                </div>
-              </div>
             </div>
 
-            {/* Actions */}
-            <div className="border-t p-6 flex gap-3">
+            {/* Footer */}
+            <div className="px-7 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
               <button
                 onClick={() => setSelectedProposal(null)}
-                className="flex-1 px-6 py-3 border border-slate-300 rounded-xl font-medium hover:bg-slate-50 transition"
+                className="px-5 h-10 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 text-sm font-medium transition"
               >
                 Close
               </button>
+
               <button
                 onClick={() => {
-                  navigate("/browse-jobs");
                   setSelectedProposal(null);
+                  navigate("/browse-jobs");
                 }}
-                className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition"
+                className="px-5 h-10 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold transition flex items-center gap-2"
               >
-                Browse More Jobs
+                <Search size={15} />
+                Browse more jobs
               </button>
             </div>
+
           </div>
         </div>
       )}

@@ -28,7 +28,7 @@ const MyJobs = () => {
       }
 
       const response = await axios.get(
-        "http://10.121.52.123:8000/api/client/getmyjobs",
+        `${import.meta.env.VITE_API_BASE_URL}/api/client/getmyjobs`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
@@ -68,7 +68,7 @@ const MyJobs = () => {
       const token = localStorage.getItem("token");
 
       const response = await axios.get(
-        `http://10.121.52.123:8000/api/client/getjobproposalsbyid?proposalId=${proposalId}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/client/getjobproposalsbyid?proposalId=${proposalId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -382,13 +382,12 @@ const MyJobs = () => {
               <p className="text-gray-500">Current Status</p>
 
               <span
-                className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-                  selectedProposal.status === "ACCEPTED"
+                className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${selectedProposal.status === "ACCEPTED"
                     ? "bg-green-100 text-green-700"
                     : selectedProposal.status === "REJECTED"
                       ? "bg-red-100 text-red-700"
                       : "bg-yellow-100 text-yellow-700"
-                }`}
+                  }`}
               >
                 {selectedProposal.status}
               </span>

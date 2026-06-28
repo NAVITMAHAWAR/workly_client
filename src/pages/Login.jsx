@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Eye, EyeOff, LogIn } from "lucide-react";
+import { authOtpAPI } from "../services/api";
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -18,67 +19,52 @@ const Login = () => {
     if (error) setError(""); // Clear error when user types
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError("");
-  setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_API_BASE_URL}/api/auth/login`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+    try {
+      // Use configured axios API instead of raw fetch
+      const response = await authOtpAPI.login(formData);
+      const data = response.data;
+
+      if (!data.success) {
+        throw new Error(data.message || "Invalid email or password");
       }
-    );
 
-    const data = await response.json();
+      // Store auth data in context (which also saves to localStorage)
+      login(data.user, data.token);
 
-    if (!response.ok) {
-      throw new Error(
-        data.message || "Invalid email or password"
+      const { role, profile_completed } = data.user;
+
+      // Navigate based on role and profile completion
+      if (role === "ADMIN") {
+        navigate("/adminDashboard");
+      } else if (role === "FREELANCER") {
+        if (profile_completed) {
+          navigate("/freelancerdashboard");
+        } else {
+          navigate("/create-freelancer-profile");
+        }
+      } else if (role === "CLIENT") {
+        if (profile_completed) {
+          navigate("/clientDashboard");
+        } else {
+          navigate("/create-client-profile");
+        }
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(
+        err.response?.data?.message ||
+        err.message ||
+        "Login failed. Please try again."
       );
+    } finally {
+      setLoading(false);
     }
-
-    login(data.user, data.token);
-    window.dispatchEvent(new Event("authChange"));
-
-    const { role, profile_completed } = data.user;
-
-    // ADMIN
-    if (role === "ADMIN") {
-      navigate("/adminDashboard");
-      return;
-    }
-
-    // FREELANCER
-    if (role === "FREELANCER") {
-      if (profile_completed) {
-        navigate("/freelancerProfile");
-      } else {
-        navigate("/create-freelancer-profile");
-      }
-      return;
-    }
-
-    // CLIENT
-    if (role === "CLIENT") {
-      if (profile_completed) {
-        navigate("/clientDashboard");
-      } else {
-        navigate("/create-client-profile");
-      }
-      return;
-    }
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">

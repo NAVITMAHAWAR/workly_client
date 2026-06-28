@@ -1,11 +1,47 @@
 // src/pages/ProposalDetails.jsx
-// src/pages/ProposalDetails.jsx
 // @ts-nocheck
 
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { ArrowLeft, Calendar, User } from "lucide-react";
+import {
+  ArrowLeft,
+  Clock,
+  Wallet,
+  CalendarCheck,
+  Coins,
+  Check,
+  X,
+} from "lucide-react";
+
+const getStatusBadge = (status) => {
+  const map = {
+    PENDING: {
+      label: "Pending review",
+      cls: "bg-orange-50 text-orange-700 border border-orange-200",
+    },
+    ACCEPTED: {
+      label: "Accepted",
+      cls: "bg-green-50 text-green-700 border border-green-200",
+    },
+    REJECTED: {
+      label: "Rejected",
+      cls: "bg-red-50 text-red-700 border border-red-200",
+    },
+  };
+  const s = map[status?.toUpperCase()] || {
+    label: status,
+    cls: "bg-slate-100 text-slate-600 border border-slate-200",
+  };
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg ${s.cls}`}
+    >
+      <Clock size={12} />
+      {s.label}
+    </span>
+  );
+};
 
 const ProposalDetails = () => {
   const { proposalId } = useParams();
@@ -14,25 +50,21 @@ const ProposalDetails = () => {
   const [proposal, setProposal] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
   const [statusLoading, setStatusLoading] = useState(false);
 
   useEffect(() => {
     const fetchProposal = async () => {
       try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          navigate("/login");
-          return;
-        }
+        if (!token) { navigate("/login"); return; }
 
         const response = await axios.get(
-          `http://10.121.52.123:8000/api/client/getjobproposalsbyid?proposalId=${proposalId}`,
-          { headers: { Authorization: `Bearer ${token}` } },
+          `${import.meta.env.VITE_API_BASE_URL}/api/client/getjobproposalsbyid?proposalId=${proposalId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
         setProposal(
-          response.data?.data || response.data?.proposal || response.data,
+          response.data?.data || response.data?.proposal || response.data
         );
       } catch (err) {
         console.error(err);
@@ -47,33 +79,24 @@ const ProposalDetails = () => {
 
   const updateProposalStatus = async (nextStatus) => {
     if (!proposal) return;
-
     try {
       setStatusLoading(true);
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+      if (!token) { navigate("/login"); return; }
 
       const pid = proposal._id || proposal.id || proposal.proposalId;
 
       const response = await axios.patch(
-        "http://10.121.52.123:8000/api/client/updateproposalstatus",
-        {
-          proposalId: pid,
-          status: nextStatus,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        `${import.meta.env.VITE_API_BASE_URL}/api/client/updateproposalstatus`,
+        { proposalId: pid, status: nextStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert(response.data?.message || "Proposal status updated");
-      setProposal((prev) => (prev ? { ...prev, status: nextStatus } : prev));
+      alert(response.data?.message || "Status updated");
+      setProposal((prev) => prev ? { ...prev, status: nextStatus } : prev);
     } catch (err) {
       console.error(err);
-      alert(err?.response?.data?.message || "Failed to update proposal status");
+      alert(err?.response?.data?.message || "Failed to update status");
     } finally {
       setStatusLoading(false);
     }
@@ -81,10 +104,10 @@ const ProposalDetails = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin w-12 h-12 border-4 border-green-600 border-t-transparent rounded-full mx-auto"></div>
-          <p className="mt-4">Loading proposal details...</p>
+          <div className="animate-spin w-10 h-10 border-4 border-green-500 border-t-transparent rounded-full mx-auto" />
+          <p className="mt-4 text-sm text-slate-500">Loading proposal...</p>
         </div>
       </div>
     );
@@ -92,14 +115,14 @@ const ProposalDetails = () => {
 
   if (error || !proposal) {
     return (
-      <div className="min-h-screen bg-slate-100 p-8">
-        <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl text-center">
-          <p className="text-red-600">{error || "Proposal not found"}</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center max-w-sm w-full">
+          <p className="text-red-500 text-sm mb-4">{error || "Proposal not found"}</p>
           <button
             onClick={() => navigate(-1)}
-            className="mt-6 px-6 py-3 bg-green-600 text-white rounded-xl"
+            className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-sm font-medium"
           >
-            Go Back
+            Go back
           </button>
         </div>
       </div>
@@ -108,106 +131,164 @@ const ProposalDetails = () => {
 
   const bidAmount = proposal.bidAmount;
   const bidText =
-    bidAmount === undefined || bidAmount === null || bidAmount === ""
-      ? ""
-      : `₹${parseFloat(bidAmount).toLocaleString()}`;
+    bidAmount == null || bidAmount === ""
+      ? "—"
+      : `₹${parseFloat(bidAmount).toLocaleString("en-IN")}`;
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="max-w-6xl mx-auto">
+
+        {/* Back button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-900 mb-6 transition-colors"
         >
-          <ArrowLeft size={20} />
-          Back to My Jobs
+          <ArrowLeft size={16} />
+          Back to my jobs
         </button>
 
-        <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
-          <div className="bg-green-600 text-white p-8">
-            <h1 className="text-3xl font-bold">Proposal Details</h1>
-            <p className="text-green-100 mt-2">
-              Proposal ID: #{proposal.id || proposal._id}
-            </p>
+        {/* Main card */}
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+
+          {/* Header */}
+          <div className="px-8 py-6 border-b border-slate-100">
+            <span className="inline-block text-xs font-semibold px-3 py-1 rounded-md bg-green-50 text-green-700 uppercase tracking-wide mb-3">
+              Proposal details
+            </span>
+            <h1 className="text-xl font-semibold text-slate-900 leading-snug mb-1">
+              {proposal.Job?.title || "Proposal"}
+            </h1>
+            {proposal.Job?.User?.name && (
+              <p className="text-sm text-slate-500">
+                Client:{" "}
+                <span className="text-slate-900 font-medium">
+                  {proposal.Job.User.name}
+                </span>
+              </p>
+            )}
           </div>
 
-          <div className="p-8 space-y-8">
-            <div className="bg-green-50 p-6 rounded-2xl">
-              <p className="text-green-700 font-semibold text-lg">Status</p>
-              <p className="text-4xl font-bold mt-1">{bidText}</p>
-              <p className="text-lg font-medium text-green-600 mt-1">
-                {proposal.status}
-              </p>
+          {/* Body */}
+          <div className="px-8 py-6">
+
+            {/* Status + ID row */}
+            <div className="flex items-center justify-between mb-6">
+              {getStatusBadge(proposal.status)}
+              <span className="text-xs text-slate-400">
+                ID: #{proposal.id || proposal._id}
+              </span>
             </div>
 
-            {proposal.deliveryDays && (
-              <div className="flex items-center gap-4 bg-slate-50 p-5 rounded-2xl">
-                <Calendar size={28} className="text-slate-500" />
-                <div>
-                  <p className="text-sm text-slate-500">Delivery Time</p>
-                  <p className="font-semibold text-xl">
-                    {proposal.deliveryDays} Days
+            {/* Metrics */}
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <Coins size={18} className="text-blue-500 mb-2" />
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+                  Client bid
+                </p>
+                <p className="text-xl font-bold text-slate-900">{bidText}</p>
+              </div>
+
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <Wallet size={18} className="text-green-500 mb-2" />
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+                  Job budget
+                </p>
+                <p className="text-xl font-bold text-slate-900">
+                  {proposal.Job?.budget
+                    ? `₹${Number(proposal.Job.budget).toLocaleString("en-IN")}`
+                    : "—"}
+                </p>
+              </div>
+
+              {proposal.deliveryDays && (
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <CalendarCheck size={18} className="text-amber-500 mb-2" />
+                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+                    Delivery
+                  </p>
+                  <p className="text-xl font-bold text-slate-900">
+                    {proposal.deliveryDays} days
                   </p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
+            <div className="h-px bg-slate-100 mb-6" />
+
+            {/* Cover letter */}
             {proposal.coverLetter && (
-              <div>
-                <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                  <User size={22} /> Cover Letter
-                </h3>
-                <div className="bg-slate-50 p-6 rounded-2xl text-slate-700 leading-relaxed whitespace-pre-wrap">
+              <>
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+                  Cover letter
+                </p>
+                <div className="bg-slate-50 rounded-xl p-5 border border-slate-200 text-sm text-slate-600 leading-relaxed mb-6 whitespace-pre-wrap">
                   {proposal.coverLetter}
                 </div>
-              </div>
+              </>
             )}
 
-            <div className="grid grid-cols-2 gap-6 text-sm">
-              <div>
-                <p className="text-slate-500">Freelancer ID</p>
-                <p className="font-medium">{proposal.freelancerId}</p>
+            {/* Details */}
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">
+              Details
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <p className="text-xs text-slate-400 mb-1">Freelancer ID</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  {proposal.freelancerId || "—"}
+                </p>
               </div>
-              <div>
-                <p className="text-slate-500">Job ID</p>
-                <p className="font-medium">{proposal.jobId}</p>
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                <p className="text-xs text-slate-400 mb-1">Job ID</p>
+                <p className="text-sm font-semibold text-slate-900">
+                  {proposal.jobId || "—"}
+                </p>
               </div>
-              <div>
-                <p className="text-slate-500">Created At</p>
-                <p className="font-medium">
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 col-span-2">
+                <p className="text-xs text-slate-400 mb-1">Submitted on</p>
+                <p className="text-sm font-semibold text-slate-900">
                   {proposal.createdAt
-                    ? new Date(proposal.createdAt).toLocaleDateString()
-                    : "-"}
+                    ? new Date(proposal.createdAt).toLocaleString("en-IN")
+                    : "—"}
                 </p>
               </div>
             </div>
 
-            <div className="border-t pt-6 flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={() => updateProposalStatus("ACCEPTED")}
-                disabled={statusLoading}
-                className="flex-1 py-3 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-2xl font-medium transition"
-              >
-                {statusLoading ? "Updating..." : "Accept"}
-              </button>
-              <button
-                onClick={() => updateProposalStatus("REJECTED")}
-                disabled={statusLoading}
-                className="flex-1 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white rounded-2xl font-medium transition"
-              >
-                Reject
-              </button>
-            </div>
           </div>
 
-          <div className="border-t p-6 flex gap-4">
+          {/* Accept / Reject */}
+          <div className="grid grid-cols-2 gap-3 px-8 py-5 border-t border-slate-100 bg-slate-50">
             <button
-              onClick={() => navigate(-1)}
-              className="flex-1 py-3 border border-slate-300 rounded-2xl font-medium"
+              onClick={() => updateProposalStatus("ACCEPTED")}
+              disabled={statusLoading}
+              className="h-11 rounded-xl bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
             >
-              Go Back
+              <Check size={15} />
+              {statusLoading ? "Updating..." : "Accept proposal"}
+            </button>
+            <button
+              onClick={() => updateProposalStatus("REJECTED")}
+              disabled={statusLoading}
+              className="h-11 rounded-xl bg-white hover:bg-red-50 disabled:opacity-60 text-red-600 text-sm font-semibold border border-red-200 transition flex items-center justify-center gap-2"
+            >
+              <X size={15} />
+              Reject proposal
             </button>
           </div>
+
+          {/* Footer */}
+          <div className="px-8 py-4 border-t border-slate-100">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-full h-10 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-sm font-medium transition flex items-center justify-center gap-2"
+            >
+              <ArrowLeft size={14} />
+              Go back
+            </button>
+          </div>
+
         </div>
       </div>
     </div>

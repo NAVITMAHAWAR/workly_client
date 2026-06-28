@@ -23,7 +23,7 @@ const CreateFreelancerProfile = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [newSkill, setNewSkill] = useState("");
   const [newLanguage, setNewLanguage] = useState("");
- const [newPortfolioLink, setNewPortfolioLink] = useState("");
+  const [newPortfolioLink, setNewPortfolioLink] = useState("");
 
   const [formData, setFormData] = useState({
     headline: "",
@@ -150,30 +150,30 @@ const CreateFreelancerProfile = () => {
   };
 
   const addPortfolioLink = () => {
-  if (!newPortfolioLink.trim()) return;
+    if (!newPortfolioLink.trim()) return;
 
-  setFormData((prev) => ({
-    ...prev,
-    portfolioLinks: [
-      ...prev.portfolioLinks,
-      newPortfolioLink,
-    ],
-  }));
+    setFormData((prev) => ({
+      ...prev,
+      portfolioLinks: [
+        ...prev.portfolioLinks,
+        newPortfolioLink,
+      ],
+    }));
 
-  setNewPortfolioLink("");
-}
+    setNewPortfolioLink("");
+  }
 
 
 
 
   const removePortfolioLink = (linkToRemove) => {
-  setFormData((prev) => ({
-    ...prev,
-    portfolioLinks: prev.portfolioLinks.filter(
-      (link) => link !== linkToRemove
-    ),
-  }));
-};
+    setFormData((prev) => ({
+      ...prev,
+      portfolioLinks: prev.portfolioLinks.filter(
+        (link) => link !== linkToRemove
+      ),
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -191,6 +191,7 @@ const CreateFreelancerProfile = () => {
       toast.error("Please fill in all required fields");
       return;
     }
+
 
     if (parseFloat(formData.hourlyRate) <= 0) {
       toast.error("Hourly rate must be greater than 0");
@@ -210,7 +211,6 @@ const CreateFreelancerProfile = () => {
       data.append("hourlyRate", formData.hourlyRate);
       data.append("languages", JSON.stringify(formData.languages));
       data.append("country", formData.country);
-      data.append("state", formData.state);
       data.append("city", formData.city);
       data.append("github", formData.github);
       data.append("linkedIn", formData.linkedIn);
@@ -224,13 +224,14 @@ const CreateFreelancerProfile = () => {
         data.append("profileImage", profileImage);
       }
 
+      console.log("[handleSubmit] Sending request to:", `${API_BASE_URL}/api/profile/complete-freelancer-profile`);
       const response = await axios.post(
         `${API_BASE_URL}/api/profile/complete-freelancer-profile`,
         data,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
+            // Don't explicitly set Content-Type, let axios handle it for FormData
           },
         }
       );
@@ -240,7 +241,7 @@ const CreateFreelancerProfile = () => {
 
         // Update user state with new profile_completed status
         const updatedUserData = response.data.data.user;
-        
+
         // Update both localStorage and context
         localStorage.setItem("user", JSON.stringify(updatedUserData));
         updateUser(updatedUserData);
@@ -250,14 +251,40 @@ const CreateFreelancerProfile = () => {
 
         // Wait a moment for state to update, then redirect
         setTimeout(() => {
-          navigate("/browse-jobs", { replace: true });
-        }, 100);
+          navigate("/FreelancerDashboard", { replace: true });
+        }, 500);
       }
     } catch (error) {
-      const message =
-        error.response?.data?.message ||
-        error.response?.data?.errors?.[0] ||
-        "Failed to complete profile";
+      console.error("[handleSubmit] Error:", error);
+      console.error("[handleSubmit] Error response:", error.response?.data);
+      console.error("[handleSubmit] Error status:", error.response?.status);
+
+      let message = "Failed to complete profile";
+
+      if (error.response) {
+        // Server responded with error
+        if (error.response.status === 403) {
+          message = error.response.data?.message || "Profile already completed";
+        } else if (error.response.status === 400) {
+          // Validation error
+          const errors = error.response.data?.errors;
+          if (Array.isArray(errors) && errors.length > 0) {
+            message = errors[0];
+          } else {
+            message = error.response.data?.message || "Validation failed";
+          }
+        } else if (error.response.status === 404) {
+          message = error.response.data?.message || "User or profile not found";
+        } else if (error.response.status === 500) {
+          message = error.response.data?.message || "Server error occurred";
+        } else {
+          message = error.response.data?.message || error.message || message;
+        }
+      } else if (error.request) {
+        // Request made but no response received
+        message = "No response from server. Please check your connection.";
+      }
+
       toast.error(message);
     } finally {
       setLoading(false);
@@ -496,7 +523,7 @@ const CreateFreelancerProfile = () => {
                   type="text"
                   value={newSkill}
                   onChange={(e) => setNewSkill(e.target.value)}
-                  onKeyPress={(e) => {
+                  onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
                       addSkill();
@@ -629,14 +656,14 @@ const CreateFreelancerProfile = () => {
               </label>
               <div className="flex gap-2 mb-3">
                 <input
-  type="url"
-  value={newPortfolioLink}
-  onChange={(e) =>
-    setNewPortfolioLink(e.target.value)
-  }
-  placeholder="https://your-portfolio.com"
-  className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-/>
+                  type="url"
+                  value={newPortfolioLink}
+                  onChange={(e) =>
+                    setNewPortfolioLink(e.target.value)
+                  }
+                  placeholder="https://your-portfolio.com"
+                  className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                />
                 <button
                   type="button"
                   onClick={addPortfolioLink}

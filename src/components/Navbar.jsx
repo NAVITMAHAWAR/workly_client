@@ -1,6 +1,6 @@
 // src/components/layout/Navbar.jsx
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Menu,
@@ -16,57 +16,18 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-// import { createIcons, user } from "lucide";
 
 import logo from "../assets/logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
 
-  const { logout } = useAuth();
-
+  // Use AuthContext as single source of truth
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Improved auth check function
-  const checkAuth = () => {
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
-
-    if (token && userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        setIsLoggedIn(true);
-        setUser(parsedUser);
-      } catch (e) {
-        console.error("Invalid user data");
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
-        setIsLoggedIn(false);
-        setUser(null);
-      }
-    } else {
-      setIsLoggedIn(false);
-      setUser(null);
-    }
-  };
-
-  useEffect(() => {
-    checkAuth();
-
-    // Listen for changes (important for login from other tabs)
-    window.addEventListener("storage", checkAuth);
-
-    // Also listen for custom login event
-    window.addEventListener("authChange", checkAuth);
-
-    return () => {
-      window.removeEventListener("storage", checkAuth);
-      window.removeEventListener("authChange", checkAuth);
-    };
-  }, []);
+  const isLoggedIn = !!user;
 
   const handleLogout = () => {
     logout();
@@ -76,7 +37,7 @@ const Navbar = () => {
   // Navigation links based on user role
   const getNavLinks = () => {
     if (!isLoggedIn || !user) return [];
-    
+
     if (user.role === "CLIENT") {
       return [
         { name: "Dashboard", href: "/clientDashboard" },
@@ -98,6 +59,22 @@ const Navbar = () => {
 
   const navLinks = getNavLinks();
 
+  const handleLogoClick = () => {
+    if (!user) {
+      navigate("/");
+      return;
+    }
+
+    if (user.role === "CLIENT") {
+      navigate("/clientDashboard");
+    } else if (user.role === "FREELANCER") {
+      navigate("/freelancerDashboard");
+    } else if (user.role === "ADMIN") {
+      navigate("/adminDashboard");
+    } else {
+      navigate("/");
+    }
+  };
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/60 bg-white/80 backdrop-blur-xl">
       <div className="container mx-auto px-4 lg:px-8">
@@ -105,31 +82,38 @@ const Navbar = () => {
           {/* Logo */}
           <motion.div
             whileHover={{ scale: 1.05 }}
-            className="flex items-center gap-2"
+            onClick={handleLogoClick}
+            className="flex items-center gap-2 cursor-pointer"
           >
             <img
               src={logo}
               alt="Logo"
               className="h-14 w-14 rounded-xl object-cover"
             />
+
             <div>
-              <h1 className="text-xl font-bold text-slate-900">FreeLincer</h1>
-              <p className="text-xs text-slate-500">Freelance Marketplace</p>
+              <h1 className="text-xl font-bold text-slate-900">
+                FreeLincer
+              </h1>
+
+              <p className="text-xs text-slate-500">
+                Freelance Marketplace
+              </p>
             </div>
           </motion.div>
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8">
-  {navLinks.map((link) => (
-    <Link
-      key={link.name}
-      to={link.href}
-      className="font-medium text-slate-600 transition hover:text-green-600"
-    >
-      {link.name}
-    </Link>
-  ))}
-</nav>
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.href}
+                className="font-medium text-slate-600 transition hover:text-green-600"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </nav>
 
           {/* Desktop Right Side */}
           <div className="hidden lg:flex items-center gap-4">
@@ -162,8 +146,9 @@ const Navbar = () => {
                       </div>
 
                       <div className="py-1">
+                        {/* Profile link - role specific */}
                         <Link
-                          to="/FreelancerProfile"
+                          to={user?.role === "CLIENT" ? "/client-profile" : "/freelancerProfile"}
                           className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-slate-700"
                         >
                           <User size={18} />
@@ -307,8 +292,8 @@ const Navbar = () => {
               transition={{ duration: 0.3 }}
               className="fixed right-0 top-0 h-screen w-[85%] max-w-sm bg-white shadow-2xl lg:hidden"
             >
-              {/* ... Mobile menu content same as before ... */}
-              {/* Header, Navigation, Bottom section same */}
+              {/* Mobile menu content - same structure as desktop */}
+              {/* Omitted for brevity - mirrors desktop structure */}
             </motion.div>
           </>
         )}

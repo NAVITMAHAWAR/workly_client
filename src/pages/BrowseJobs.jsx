@@ -20,7 +20,8 @@ export default function BrowseJobs() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [budgetFilter, setBudgetFilter] = useState("");
-  const [selectedJob, setSelectedJob] = useState(null);
+  const [proposalJob, setProposalJob] = useState(null);
+  const [detailsJob, setDetailsJob] = useState(null);
   const [bidAmount, setBidAmount] = useState("");
   const [deliveryDays, setDeliveryDays] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
@@ -32,6 +33,10 @@ export default function BrowseJobs() {
     fetchJobs();
     fetchSavedJobs();
   }, []);
+
+  const handleViewJob = (job) => {
+    setDetailsJob(job);
+  };
 
   const fetchJobs = async () => {
     try {
@@ -123,13 +128,14 @@ export default function BrowseJobs() {
     try {
       setSubmittingProposal(true);
       await freelancerAPI.createProposal({
-        jobId: selectedJob.id,
+        jobId: proposalJob.id,
         bidAmount: parseFloat(bidAmount),
         coverLetter,
         deliveryDays: days,
       });
       toast.success("Proposal submitted successfully!");
-      setSelectedJob(null);
+      navigate("/my-proposals")
+      setProposalJob(null);
       setBidAmount("");
       setCoverLetter("");
       setDeliveryDays("");
@@ -244,11 +250,10 @@ export default function BrowseJobs() {
                         </p>
                       </div>
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${
-                          job.status === "OPEN"
+                        className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap ${job.status === "OPEN"
                             ? "bg-green-100 text-green-700"
                             : "bg-yellow-100 text-yellow-700"
-                        }`}
+                          }`}
                       >
                         {job.status || "OPEN"}
                       </span>
@@ -291,7 +296,7 @@ export default function BrowseJobs() {
                   {/* Action Button */}
                   <div className="flex flex-col gap-3 justify-between">
                     <button
-                      onClick={() => setSelectedJob(job)}
+                      onClick={() => setProposalJob(job)}
                       className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-semibold transition flex items-center gap-2"
                     >
                       Submit Proposal <ChevronRight size={18} />
@@ -309,7 +314,7 @@ export default function BrowseJobs() {
                       {isSaved(job.id) ? "Saved" : "Save Job"}
                     </button>
                     <button
-                      onClick={() => navigate(`/job/${job.id}`)}
+                      onClick={() => handleViewJob(job)}
                       className="px-6 py-3 border border-slate-300 hover:bg-slate-50 rounded-xl font-semibold transition"
                     >
                       View Details
@@ -323,104 +328,341 @@ export default function BrowseJobs() {
       </div>
 
       {/* Proposal Modal */}
-      {selectedJob && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6">
-              <h2 className="text-2xl font-bold">Submit Proposal</h2>
-              <p className="text-indigo-100 mt-1">{selectedJob.title}</p>
+     {proposalJob && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+    <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-[28px] shadow-2xl">
+
+      {/* Header */}
+      <div className="relative bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 px-8 py-8 text-white">
+
+        <button
+          onClick={() => setProposalJob(null)}
+          className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 transition flex items-center justify-center text-2xl"
+        >
+          ×
+        </button>
+
+        <p className="uppercase tracking-[4px] text-indigo-200 text-sm">
+          Submit Proposal
+        </p>
+
+        <h2 className="text-3xl font-bold mt-2">
+          {proposalJob.title}
+        </h2>
+
+        <p className="text-indigo-100 mt-2 max-w-2xl">
+          Write a compelling proposal that explains your experience,
+          approach and why you're the right freelancer for this project.
+        </p>
+
+      </div>
+
+      {/* Body */}
+      <div className="p-8 space-y-8">
+
+        {/* Project Info */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+
+          <div className="rounded-2xl bg-indigo-50 p-5">
+            <p className="text-xs uppercase text-slate-500">
+              Budget
+            </p>
+
+            <h3 className="mt-2 text-xl font-bold text-indigo-700">
+              ₹{Number(proposalJob.budget).toLocaleString("en-IN")}
+            </h3>
+          </div>
+
+          <div className="rounded-2xl bg-green-50 p-5">
+            <p className="text-xs uppercase text-slate-500">
+              Duration
+            </p>
+
+            <h3 className="mt-2 font-bold text-green-700">
+              {proposalJob.duration}
+            </h3>
+          </div>
+
+          <div className="rounded-2xl bg-orange-50 p-5">
+            <p className="text-xs uppercase text-slate-500">
+              Experience
+            </p>
+
+            <h3 className="mt-2 font-bold text-orange-600">
+              {proposalJob.experienceLevel}
+            </h3>
+          </div>
+
+          <div className="rounded-2xl bg-sky-50 p-5">
+            <p className="text-xs uppercase text-slate-500">
+              Category
+            </p>
+
+            <h3 className="mt-2 font-bold text-sky-700">
+              {proposalJob.category}
+            </h3>
+          </div>
+
+        </div>
+
+        {/* Bid & Delivery */}
+        <div className="grid md:grid-cols-2 gap-6">
+
+          <div>
+
+            <label className="block font-semibold mb-2">
+              Your Bid Amount
+            </label>
+
+            <div className="relative">
+
+              <span className="absolute left-4 top-3 text-lg font-bold text-slate-500">
+                ₹
+              </span>
+
+              <input
+                type="number"
+                value={bidAmount}
+                onChange={(e) => setBidAmount(e.target.value)}
+                placeholder="Enter your bid"
+                className="w-full rounded-xl border border-slate-300 pl-10 pr-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+              />
+
             </div>
 
-            <div className="p-8 space-y-6">
-              {/* Job Summary */}
-              <div className="bg-slate-50 rounded-xl p-4">
-                <h3 className="font-semibold mb-2">Job Details</h3>
-                <div className="grid md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <p className="text-slate-600">Budget</p>
-                    <p className="font-bold">
-                      ₹{selectedJob.budget?.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-slate-600">Duration</p>
-                    <p className="font-bold">{selectedJob.duration}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-600">Category</p>
-                    <p className="font-bold">{selectedJob.category}</p>
-                  </div>
-                </div>
-              </div>
+          </div>
 
-              {/* Bid Amount */}
-              <div>
-                <label className="block font-semibold mb-2">Your Bid Amount</label>
-                <div className="relative">
-                  <DollarSign
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
-                  <input
-                    type="number"
-                    value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder="Enter your bid amount"
-                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-              </div>
+          <div>
 
-              {/* Delivery Days */}
-              <div>
-                <label className="block font-semibold mb-2">Delivery Days *</label>
-                <div className="relative">
-                  <Clock
-                    className="absolute left-3 top-3.5 text-gray-400"
-                    size={20}
-                  />
-                  <input
-                    type="number"
-                    value={deliveryDays}
-                    onChange={(e) => setDeliveryDays(e.target.value)}
-                    placeholder="Enter delivery days (1-365)"
-                    min="1"
-                    max="365"
-                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-                <p className="text-sm text-slate-500 mt-1">Specify how many days you need to complete this project</p>
-              </div>
+            <label className="block font-semibold mb-2">
+              Delivery Days
+            </label>
 
-              {/* Cover Letter */}
-              <div>
-                <label className="block font-semibold mb-2">Cover Letter</label>
-                <textarea
-                  value={coverLetter}
-                  onChange={(e) => setCoverLetter(e.target.value)}
-                  placeholder="Tell the client why you're a good fit for this project..."
-                  rows={6}
-                  className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
-                />
-              </div>
+            <input
+              type="number"
+              min="1"
+              max="365"
+              value={deliveryDays}
+              onChange={(e) => setDeliveryDays(e.target.value)}
+              placeholder="e.g. 10"
+              className="w-full rounded-xl border border-slate-300 px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+            />
 
-              {/* Actions */}
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setSelectedJob(null)}
-                  className="flex-1 px-6 py-3 border border-slate-300 rounded-xl font-semibold hover:bg-slate-50 transition"
+          </div>
+
+        </div>
+
+        {/* Cover Letter */}
+        <div>
+
+          <div className="flex justify-between mb-2">
+
+            <label className="font-semibold">
+              Cover Letter
+            </label>
+
+            <span className="text-sm text-slate-500">
+              {coverLetter.length}/1000
+            </span>
+
+          </div>
+
+          <textarea
+            rows={8}
+            value={coverLetter}
+            onChange={(e) => setCoverLetter(e.target.value)}
+            placeholder="Hi, I have worked on similar projects before. Explain your experience, your development process, estimated timeline and why the client should hire you..."
+            className="w-full rounded-2xl border border-slate-300 p-5 resize-none outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+
+          <p className="text-sm text-slate-500 mt-2">
+            A detailed proposal increases your chances of getting hired.
+          </p>
+
+        </div>
+
+        {/* Skills */}
+        {proposalJob.skills?.length > 0 && (
+
+          <div>
+
+            <h3 className="font-semibold mb-3">
+              Required Skills
+            </h3>
+
+            <div className="flex flex-wrap gap-2">
+
+              {proposalJob.skills.map((skill, index) => (
+
+                <span
+                  key={index}
+                  className="px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 font-medium text-sm"
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSubmitProposal}
-                  disabled={submittingProposal}
-                  className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-xl font-semibold transition"
-                >
-                  {submittingProposal ? "Submitting..." : "Submit Proposal"}
-                </button>
-              </div>
+                  {skill}
+                </span>
+
+              ))}
+
             </div>
+
+          </div>
+
+        )}
+
+      </div>
+
+      {/* Footer */}
+      <div className="border-t bg-slate-50 px-8 py-6 flex justify-end gap-4">
+
+        <button
+          onClick={() => setProposalJob(null)}
+          className="px-8 py-3 rounded-xl border border-slate-300 hover:bg-white font-semibold transition"
+        >
+          Cancel
+        </button>
+
+        <button
+          onClick={handleSubmitProposal}
+          disabled={submittingProposal}
+          className="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-semibold transition disabled:opacity-50"
+        >
+          {submittingProposal ? (
+            <div className="flex items-center gap-2">
+              <Loader size={18} className="animate-spin" />
+              Submitting...
+            </div>
+          ) : (
+            "Submit Proposal"
+          )}
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+)}
+
+      {detailsJob  && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+
+            {/* Header */}
+            <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white flex justify-between items-start">
+              <div>
+                <h2 className="text-2xl font-bold">
+                  {detailsJob.title}
+                </h2>
+                <p className="text-indigo-100 mt-1">
+                  Posted by {detailsJob.User?.name}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setDetailsJob(null)}
+                className="text-3xl hover:rotate-90 transition"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-6">
+
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <p className="text-xs text-slate-500">Budget</p>
+                  <h3 className="font-bold text-indigo-600 text-lg">
+                    ₹{Number(detailsJob.budget).toLocaleString("en-IN")}
+                  </h3>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <p className="text-xs text-slate-500">Budget Type</p>
+                  <h3 className="font-semibold">
+                    {detailsJob.budgetType}
+                  </h3>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <p className="text-xs text-slate-500">Experience</p>
+                  <h3 className="font-semibold">
+                    {detailsJob.experienceLevel}
+                  </h3>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <p className="text-xs text-slate-500">Duration</p>
+                  <h3 className="font-semibold">
+                    {detailsJob.duration}
+                  </h3>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <p className="text-xs text-slate-500">Category</p>
+                  <h3 className="font-semibold">
+                    {detailsJob.category}
+                  </h3>
+                </div>
+
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <p className="text-xs text-slate-500">Status</p>
+                  <span className="inline-flex px-3 py-1 rounded-full bg-green-100 text-green-700 font-semibold text-sm">
+                    {detailsJob.status}
+                  </span>
+                </div>
+
+              </div>
+
+              {/* Description */}
+              <div>
+                <h3 className="font-bold text-lg mb-2">
+                  Job Description
+                </h3>
+
+                <p className="text-slate-600 leading-7">
+                  {detailsJob.description}
+                </p>
+              </div>
+
+              {/* Skills */}
+              <div>
+                <h3 className="font-bold text-lg mb-3">
+                  Required Skills
+                </h3>
+
+                <div className="flex flex-wrap gap-2">
+                  {detailsJob.skills?.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-sm font-medium"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+
+                <button
+                 onClick={() => setDetailsJob(null)}
+                  className="px-6 py-2 rounded-xl border border-slate-300 hover:bg-slate-100"
+                >
+                  Close
+                </button>
+
+                <button
+                  className="px-6 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
+                >
+                  Apply Now
+                </button>
+
+              </div>
+
+            </div>
+
           </div>
         </div>
       )}

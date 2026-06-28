@@ -1,297 +1,296 @@
+// src/pages/PostJob.jsx
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
-  Briefcase,
-  FileText,
-  IndianRupee,
-  Code,
-  Clock,
-  Award,
-  Layers,
+  Briefcase, AlignLeft, LayoutGrid, Tag,
+   Lock, Clock, Star, Calendar, Send, X,
 } from "lucide-react";
+import { toast } from "react-toastify";
+
+const CATEGORIES = [
+  "Web Development", "Mobile Development", "UI/UX Design",
+  "Graphic Design", "Content Writing",
+];
+
+const DURATIONS = ["1 Week", "2 Weeks", "1 Month", "3 Months", "6 Months"];
+
+const EXP_LEVELS = [
+  { value: "BEGINNER", label: "Beginner", sub: "0–2 years" },
+  { value: "INTERMEDIATE", label: "Intermediate", sub: "2–5 years" },
+  { value: "EXPERT", label: "Expert", sub: "5+ years" },
+];
+
+function SectionLabel({ icon: Icon, children }) {
+  return (
+    <div className="flex items-center gap-2 mb-4">
+    
+      <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+        {children}
+      </span>
+      <div className="flex-1 h-px bg-slate-100" />
+    </div>
+  );
+}
+
+function Field({ label, hint, children }) {
+  return (
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-slate-700 mb-1.5">{label}</label>
+      {children}
+      {hint && <p className="text-xs text-slate-400 mt-1">{hint}</p>}
+    </div>
+  );
+}
+
+function InputWrap({ icon: Icon, children }) {
+  return (
+    <div className="relative">
+      
+      {children}
+    </div>
+  );
+}
+
+const inputCls =
+  "w-full bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-300 outline-none transition focus:border-indigo-300 focus:bg-white focus:ring-2 focus:ring-indigo-100";
 
 export default function PostJob() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [skillInput, setSkillInput] = useState("");
+  const [skills, setSkills] = useState([]);
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     category: "",
-    skills: "",
     budget: "",
     budgetType: "FIXED",
     experienceLevel: "INTERMEDIATE",
     duration: "",
   });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
+  const addSkill = (e) => {
+    if (e.key !== "Enter") return;
     e.preventDefault();
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      alert("Please login first");
-      navigate("/login");
-      return;
-    }
-
-    const payload = {
-      title: formData.title,
-      description: formData.description,
-      category: formData.category,
-      skills: formData.skills
-        .split(",")
-        .map((skill) => skill.trim())
-        .filter(Boolean),
-      budget: Number(formData.budget),
-      budgetType: formData.budgetType,
-      experienceLevel: formData.experienceLevel,
-      duration: formData.duration,
-    };
-
-    try {
-      setLoading(true);
-
-      const response = await axios.post(
-        "http://10.121.52.123:8000/api/client/createjobs",
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      alert("Job Posted Successfully");
-
-      if(response.ok){
-        navigate("/PostJob")
-      }
-
-      setFormData({
-        title: "",
-        description: "",
-        category: "",
-        skills: "",
-        budget: "",
-        budgetType: "FIXED",
-        experienceLevel: "INTERMEDIATE",
-        duration: "",
-      });
-    } catch (error) {
-      console.error(error);
-      alert(error.response?.data?.message || "Failed to post job");
-    } finally {
-      setLoading(false);
-    }
+    const val = skillInput.trim();
+    if (val && !skills.includes(val)) setSkills([...skills, val]);
+    setSkillInput("");
   };
+
+  const removeSkill = (s) => setSkills(skills.filter((x) => x !== s));
+
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (skills.length === 0) {
+    console.log("2. No Skills");
+    toast.error("Add at least one skill");
+    return;
+  }
+
+  const token = localStorage.getItem("token");
+
+
+  const payload = {
+    ...formData,
+    skills,
+    budget: Number(formData.budget),
+  };
+
+
+  try {
+    setLoading(true);
+
+
+    const response = await axios.post(
+      `${import.meta.env.VITE_API_BASE_URL}/api/client/createjobs`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    toast.success("Job posted successfully!");
+    navigate("/MyJobs");
+  } catch (err) {
+    console.log("7. Error:", err);
+    toast.error(err.response?.data?.message || "Failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
-    <div className="min-h-screen bg-slate-100 py-10 px-4">
-      <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl p-8">
-        <h1 className="text-3xl font-bold text-slate-800 mb-8">
-          Post a New Job
-        </h1>
+    <div className="min-h-screen bg-slate-50 py-10 px-4">
+      <div className="max-w-6xl mx-auto">
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Job Title */}
-          <div>
-            <label className="block mb-2 font-medium">Job Title</label>
+        {/* Page header */}
+        <div className="mb-6">
+          <span className="inline-block text-xs font-semibold px-3 py-1 rounded-md bg-indigo-50 text-indigo-600 uppercase tracking-wide mb-2">
+            New listing
+          </span>
+          <h1 className="text-2xl font-semibold text-slate-900">Post a job</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Fill in the details to find the right freelancer
+          </p>
+        </div>
 
-            <div className="relative">
-              <Briefcase
-                size={18}
-                className="absolute left-4 top-4 text-gray-400"
-              />
+        <form onSubmit={handleSubmit}>
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="px-8 py-6">
 
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Need React Developer"
-                required
-                className="w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
+              {/* ── Basics ── */}
+              <div className="mb-7">
+                <SectionLabel icon={Briefcase}>Job basics</SectionLabel>
+
+                <Field label="Job title">
+                  <InputWrap icon={Briefcase}>
+                    <input
+                      name="title" value={formData.title} onChange={handleChange}
+                      required placeholder="e.g. Need React Developer"
+                      className={`${inputCls} h-11 pl-9 pr-4`}
+                    />
+                  </InputWrap>
+                </Field>
+
+                <Field label="Description">
+                  <div className="relative">
+                    <AlignLeft size={15} className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none" />
+                    <textarea
+                      name="description" value={formData.description} onChange={handleChange}
+                      required rows={4}
+                      placeholder="Describe the project, deliverables, and any specific requirements..."
+                      className={`${inputCls} pl-9 pr-4 py-3`}
+                    />
+                  </div>
+                </Field>
+
+                <Field label="Category">
+                  <InputWrap icon={LayoutGrid}>
+                    <select
+                      name="category" value={formData.category} onChange={handleChange}
+                      required className={`${inputCls} h-11 pl-9 pr-4`}
+                    >
+                      <option value="">Select a category</option>
+                      {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                    </select>
+                  </InputWrap>
+                </Field>
+              </div>
+
+              {/* ── Skills ── */}
+              <div className="mb-7">
+                <SectionLabel icon={Tag}>Skills required</SectionLabel>
+
+                <Field label="Add skills" hint="Press Enter after each skill">
+                  <InputWrap icon={Tag}>
+                    <input
+                      value={skillInput}
+                      onChange={(e) => setSkillInput(e.target.value)}
+                      onKeyDown={addSkill}
+                      placeholder="e.g. React, Node.js, Tailwind CSS"
+                      className={`${inputCls} h-11 pl-9 pr-4`}
+                    />
+                  </InputWrap>
+                  {skills.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {skills.map((s) => (
+                        <span
+                          key={s}
+                          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600"
+                        >
+                          {s}
+                          <button
+                            type="button" onClick={() => removeSkill(s)}
+                            className="text-indigo-400 hover:text-indigo-700"
+                            aria-label={`Remove ${s}`}
+                          >
+                            <X size={12} />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </Field>
+              </div>
+
+              {/* ── Budget ── */}
+              <div className="mb-7">
+                <SectionLabel >Budget</SectionLabel>
+
+                <Field label={formData.budgetType === "FIXED" ? "Fixed budget (₹)" : "Hourly rate (₹/hr)"}>
+                  <InputWrap >
+                    <input
+                      type="number" name="budget" value={formData.budget} onChange={handleChange}
+                      required min="1" placeholder="e.g. 15000"
+                      className={`${inputCls} h-11 pl-9 pr-4`}
+                    />
+                  </InputWrap>
+                </Field>
+              </div>
+
+              {/* ── Experience & Timeline ── */}
+              <div className="mb-2">
+                <SectionLabel icon={Star}>Experience and timeline</SectionLabel>
+
+                <Field label="Experience level">
+                  <div className="grid grid-cols-3 gap-2">
+                    {EXP_LEVELS.map(({ value, label, sub }) => (
+                      <button
+                        key={value} type="button"
+                        onClick={() => setFormData({ ...formData, experienceLevel: value })}
+                        className={`py-2.5 rounded-xl text-sm border transition text-center ${
+                          formData.experienceLevel === value
+                            ? "bg-indigo-50 border-indigo-200 text-indigo-600 font-semibold"
+                            : "bg-slate-50 border-slate-200 text-slate-500 hover:border-slate-300"
+                        }`}
+                      >
+                        {label}
+                        <span className={`block text-xs mt-0.5 font-normal ${
+                          formData.experienceLevel === value ? "text-indigo-400" : "text-slate-400"
+                        }`}>
+                          {sub}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+
+                <Field label="Duration">
+                  <InputWrap icon={Calendar}>
+                    <select
+                      name="duration" value={formData.duration} onChange={handleChange}
+                      required className={`${inputCls} h-11 pl-9 pr-4`}
+                    >
+                      <option value="">Select duration</option>
+                      {DURATIONS.map((d) => <option key={d}>{d}</option>)}
+                    </select>
+                  </InputWrap>
+                </Field>
+              </div>
+
             </div>
-          </div>
 
-          {/* Description */}
-          <div>
-            <label className="block mb-2 font-medium">Description</label>
-
-            <div className="relative">
-              <FileText
-                size={18}
-                className="absolute left-4 top-4 text-gray-400"
-              />
-
-              <textarea
-                rows="5"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Build a dashboard using React and Node.js"
-                required
-                className="w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block mb-2 font-medium">Category</label>
-
-            <div className="relative">
-              <Layers
-                size={18}
-                className="absolute left-4 top-4 text-gray-400"
-              />
-
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                required
-                className="w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+            {/* Footer */}
+            <div className="px-8 py-4 border-t border-slate-100 bg-slate-50">
+              <button
+                type="submit" disabled={loading}
+                className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-semibold transition flex items-center justify-center gap-2"
               >
-                <option value="">Select Category</option>
-                <option value="Web Development">Web Development</option>
-                <option value="Mobile Development">Mobile Development</option>
-                <option value="UI/UX Design">UI/UX Design</option>
-                <option value="Graphic Design">Graphic Design</option>
-                <option value="Content Writing">Content Writing</option>
-              </select>
+                <Send size={15} />
+                {loading ? "Posting job..." : "Post job"}
+              </button>
             </div>
           </div>
-
-          {/* Skills */}
-          <div>
-            <label className="block mb-2 font-medium">Skills</label>
-
-            <div className="relative">
-              <Code size={18} className="absolute left-4 top-4 text-gray-400" />
-
-              <input
-                type="text"
-                name="skills"
-                value={formData.skills}
-                onChange={handleChange}
-                placeholder="React, Node.js, Tailwind CSS"
-                required
-                className="w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-5">
-            {/* Budget */}
-            <div>
-              <label className="block mb-2 font-medium">Budget</label>
-
-              <div className="relative">
-                <IndianRupee
-                  size={18}
-                  className="absolute left-4 top-4 text-gray-400"
-                />
-
-                <input
-                  type="number"
-                  name="budget"
-                  value={formData.budget}
-                  onChange={handleChange}
-                  placeholder="1000"
-                  required
-                  className="w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Budget Type */}
-            <div>
-              <label className="block mb-2 font-medium">Budget Type</label>
-
-              <select
-                name="budgetType"
-                value={formData.budgetType}
-                onChange={handleChange}
-                className="w-full py-3 px-4 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-              >
-                <option value="FIXED">Fixed Price</option>
-                <option value="HOURLY">Hourly</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-5">
-            {/* Experience Level */}
-            <div>
-              <label className="block mb-2 font-medium">Experience Level</label>
-
-              <div className="relative">
-                <Award
-                  size={18}
-                  className="absolute left-4 top-4 text-gray-400"
-                />
-
-                <select
-                  name="experienceLevel"
-                  value={formData.experienceLevel}
-                  onChange={handleChange}
-                  className="w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-                >
-                  <option value="BEGINNER">Beginner</option>
-                  <option value="INTERMEDIATE">Intermediate</option>
-                  <option value="EXPERT">Expert</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div>
-              <label className="block mb-2 font-medium">Duration</label>
-
-              <div className="relative">
-                <Clock
-                  size={18}
-                  className="absolute left-4 top-4 text-gray-400"
-                />
-
-                <select
-                  name="duration"
-                  value={formData.duration}
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-11 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
-                >
-                  <option value="">Select Duration</option>
-                  <option value="1 Week">1 Week</option>
-                  <option value="2 Weeks">2 Weeks</option>
-                  <option value="1 Month">1 Month</option>
-                  <option value="3 Months">3 Months</option>
-                  <option value="6 Months">6 Months</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-semibold transition"
-          >
-            {loading ? "Posting Job..." : "Post Job"}
-          </button>
         </form>
+
       </div>
     </div>
   );

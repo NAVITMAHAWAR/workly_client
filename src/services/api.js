@@ -42,13 +42,15 @@ export const authOtpAPI = {
 export const profileAPI = {
   getProfileStatus: () => api.get("/api/profile/status"),
   completeClientProfile: (data) =>
-    api.post("/api/profile/complete-client-profile", data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+    api.post("/api/profile/complete-client-profile", data),
   completeFreelancerProfile: (data) =>
-    api.post("/api/profile/complete-freelancer-profile", data, {
-      headers: { "Content-Type": "multipart/form-data" },
-    }),
+    api.post("/api/profile/complete-freelancer-profile", data),
+  getClientProfile: () => api.get("/api/profile/client"),
+  updateClientProfile: (data) =>
+    api.put("/api/profile/client", data),
+  getFreelancerProfile: () => api.get("/api/profile/freelancer"),
+  updateFreelancerProfile: (data) =>
+    api.put("/api/profile/freelancer", data),
 };
 
 // ==================== AUTH APIs (Legacy) ====================
@@ -85,6 +87,7 @@ export const clientAPI = {
     api.get("/api/client/getfreelincers", { params: { search } }),
   getFreelancerById: (freelancerId) =>
     api.get("/api/client/getfreelincerbyid", { params: { freelancerId } }),
+  getClientDashboard: () => api.get("/api/client/dashboard"),
 };
 
 // ==================== FREELANCER APIs ====================
@@ -114,6 +117,12 @@ export const freelancerAPI = {
   saveJob: (jobId) => api.post("/api/freelancer/savedjobs", { jobId }),
   unsaveJob: (jobId) => api.post("/api/freelancer/unsavedjob", { jobId }),
   getSavedJobs: () => api.get("/api/freelancer/getsavedjobs"),
+  getNotifications: (limit = 10, offset = 0, unreadOnly = false) =>
+    api.get("/api/freelancer/notifications", { params: { limit, offset, unreadOnly } }),
+  markNotificationAsRead: (notificationId) =>
+    api.post("/api/freelancer/notifications/mark-read", { notificationId }),
+  markAllNotificationsAsRead: () =>
+    api.post("/api/freelancer/notifications/mark-all-read"),
 };
 
 // ==================== CHAT APIs ====================

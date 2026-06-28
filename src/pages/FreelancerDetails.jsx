@@ -23,9 +23,11 @@ export default function FreelancerDetails() {
   const [freelancer, setFreelancer] = useState(null);
   const [portfolio, setPortfolio] = useState([]);
   const [reviews, setReviews] = useState([]);
+  const [averageRating, setAverageRating] = useState([])
   const [completedJobs, setCompletedJobs] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
+
 
   useEffect(() => {
     fetchFreelancerDetails();
@@ -39,6 +41,9 @@ export default function FreelancerDetails() {
       setPortfolio(response.data.portfolio || []);
       setReviews(response.data.reviews || []);
       setCompletedJobs(response.data.completedJobs || 0);
+      setAverageRating(response.data.
+        averageRating
+      )
     } catch (error) {
       console.error(error);
       toast.error("Failed to load freelancer details");
@@ -47,6 +52,8 @@ export default function FreelancerDetails() {
       setLoading(false);
     }
   };
+
+  console.log(averageRating)
 
   if (loading) {
     return (
@@ -77,7 +84,7 @@ export default function FreelancerDetails() {
           {/* Cover */}
           <div className="h-40 bg-gradient-to-r from-indigo-500 to-purple-500 relative">
             <img
-              src={freelancer.profile_image || "https://via.placeholder.com/150"}
+              src={`${import.meta.env.VITE_API_BASE_URL}${freelancer.profile_image}` || "https://via.placeholder.com/150"}
               alt={freelancer.name}
               className="absolute bottom-0 left-8 transform translate-y-1/2 w-32 h-32 rounded-full border-4 border-white object-cover"
             />
@@ -109,12 +116,21 @@ export default function FreelancerDetails() {
                       <Star
                         key={i}
                         size={18}
-                        className="fill-yellow-400 text-yellow-400"
+                        className={`${i < Math.round(Number(averageRating))
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300"
+                          }`}
                       />
                     ))}
                   </div>
-                  <span className="font-semibold">{}</span>
-                  <span className="text-slate-600">({reviews.length} Review)</span>
+
+                  <span className="font-semibold">
+                    {Number(averageRating).toFixed(1)}
+                  </span>
+
+                  <span className="text-slate-600">
+                    ({reviews?.length || 0} {reviews?.length === 1 ? "Review" : "Reviews"})
+                  </span>
                 </div>
 
                 {/* Stats */}
@@ -123,7 +139,7 @@ export default function FreelancerDetails() {
                     <p className="text-slate-600 text-sm">Completed Jobs</p>
                     <p className="text-2xl font-bold">{completedJobs}</p>
                   </div>
-                
+
                 </div>
               </div>
 
@@ -148,11 +164,10 @@ export default function FreelancerDetails() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-3 font-semibold capitalize transition ${
-                activeTab === tab
+              className={`px-6 py-3 font-semibold capitalize transition ${activeTab === tab
                   ? "text-indigo-600 border-b-2 border-indigo-600"
                   : "text-slate-600 hover:text-slate-900"
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -304,11 +319,10 @@ export default function FreelancerDetails() {
                             <Star
                               key={i}
                               size={14}
-                              className={`${
-                                i < review.rating
+                              className={`${i < review.rating
                                   ? "fill-yellow-400 text-yellow-400"
                                   : "text-slate-300"
-                              }`}
+                                }`}
                             />
                           ))}
                         </div>

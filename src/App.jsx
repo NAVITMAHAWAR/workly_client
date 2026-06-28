@@ -16,6 +16,7 @@ import ProposalDetails from "./pages/ProposalDetails";
 import FreelancersList from "./pages/FreelancersList";
 import FreelancerDetails from "./pages/FreelancerDetails";
 import CreateClientProfile from "./pages/CreateClientProfile";
+import ClientProfilePage from "./pages/ClientProfilePage"
 
 // Freelancer Pages
 import BrowseJobs from "./pages/BrowseJobs";
@@ -29,11 +30,11 @@ import Chat from "./pages/Chat";
 import Notifications from "./pages/Notifications";
 
 // Freelancer Components
-import CreateProfile from "./freelancer/CreateProfile";
 import FreelancerProfile from "./freelancer/FreelancerProfile";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import { ProtectedRouteWithProfileCheck } from "./routes/ProfileCompletionGuard";
+import FreelancerDashboard from "./freelancer/FreelancerDashboard";
 
 function App() {
   return (
@@ -57,6 +58,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/client-profile"
+          element={
+            <ProtectedRoute role="CLIENT">
+              {/* Route to correct profile completion page based on role */}
+              <ClientProfilePage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/create-client-profile"
@@ -72,6 +82,14 @@ function App() {
           element={
             <ProtectedRoute role="FREELANCER">
               <CreateFreelancerProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/freelancerdashboard"
+          element={
+            <ProtectedRoute role="FREELANCER">
+              <FreelancerDashboard />
             </ProtectedRoute>
           }
         />
@@ -192,16 +210,6 @@ function App() {
             <ProtectedRouteWithProfileCheck role="FREELANCER">
               <FreelancerProfile />
             </ProtectedRouteWithProfileCheck>
-          }
-        />
-
-        {/* Legacy Routes (keep for backward compatibility) */}
-        <Route
-          path="/create-profile-legacy"
-          element={
-            <ProtectedRoute role="FREELANCER">
-              <CreateProfile />
-            </ProtectedRoute>
           }
         />
 

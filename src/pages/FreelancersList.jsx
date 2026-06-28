@@ -102,7 +102,7 @@ export default function FreelancersList() {
                 {/* Header with Avatar */}
                 <div className="bg-gradient-to-r from-indigo-500 to-purple-500 h-24 relative">
                   <img
-                    src={freelancer.profile_image || "https://via.placeholder.com/150"}
+                    src={`${import.meta.env.VITE_API_BASE_URL}${freelancer.profile_image} ` || "https://via.placeholder.com/150"}
                     alt={freelancer.name}
                     className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-24 h-24 rounded-full border-4 border-white object-cover"
                   />
@@ -154,12 +154,18 @@ export default function FreelancersList() {
                         <Star
                           key={i}
                           size={16}
-                          className="fill-yellow-400 text-yellow-400"
+                          className={`${i < Math.round(Number(freelancer.averageRating || 0))
+                              ? "fill-yellow-400 text-yellow-400"
+                              : "text-gray-300"
+                            }`}
                         />
                       ))}
                     </div>
+
                     <span className="text-sm text-slate-600 ml-2">
-                      (4.8) • 25 jobs
+                      ({Number(freelancer.averageRating || 0).toFixed(1)}) •{" "}
+                      {freelancer.totalReviews || 0}{" "}
+                      {(freelancer.totalReviews || 0) === 1 ? "Review" : "Reviews"}
                     </span>
                   </div>
 

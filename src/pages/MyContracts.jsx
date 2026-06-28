@@ -12,6 +12,7 @@ import {
   X,
   Send,
   FileText,
+  MessageCircle 
 } from "lucide-react";
 import { toast } from "react-toastify";
 
@@ -279,7 +280,7 @@ const fetchContracts = async () => {
                       className="px-4 py-2 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium transition flex items-center gap-2"
                     >
                       <Eye size={16} />
-                      View Details
+                      View Details 
                     </button>
                   </div>
                 </div>
@@ -290,122 +291,176 @@ const fetchContracts = async () => {
       </div>
 
       {/* Contract Details Modal */}
-      {selectedContract && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 flex justify-between items-center">
-              <h2 className="text-2xl font-bold">Contract Details</h2>
-              <button
-                onClick={() => setSelectedContract(null)}
-                className="p-2 hover:bg-white/20 rounded-lg transition"
-              >
-                <X size={24} />
-              </button>
-            </div>
+     {selectedContract && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white w-full max-w-lg rounded-2xl border border-slate-200 overflow-hidden shadow-xl">
 
-            {/* Content */}
-            <div className="p-8 space-y-6 max-h-[70vh] overflow-auto">
-              {/* Project Title */}
-              <div>
-                <h3 className="text-sm text-slate-600 font-semibold">
-                  Project Title
-                </h3>
-                <p className="text-lg font-bold mt-1">
-                  {selectedContract.Job?.title}
-                </p>
-              </div>
+      {/* Header */}
+      <div className="px-7 py-5 border-b border-slate-100 flex justify-between items-start gap-3">
+        <div>
+          <span className="inline-block text-xs font-semibold px-3 py-1 rounded-md bg-green-50 text-green-700 uppercase tracking-wide mb-2">
+            Contract
+          </span>
+          <h2 className="text-lg font-semibold text-slate-900 leading-snug">
+            {selectedContract.Job?.title}
+          </h2>
+        </div>
+        <button
+          onClick={() => setSelectedContract(null)}
+          className="w-9 h-9 rounded-full bg-slate-50 border border-slate-200 hover:bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0 transition"
+        >
+          <X size={15} />
+        </button>
+      </div>
 
-              {/* Status */}
-              <div>
-                <h3 className="text-sm text-slate-600 font-semibold">Status</h3>
-                <div className="mt-2">
-                  {getStatusBadge(selectedContract.status)}
-                </div>
-              </div>
+      {/* Body */}
+      <div className="px-7 py-5">
 
-              {/* Contract Value */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <h3 className="text-sm text-slate-600 font-semibold">
-                    Contract Amount
-                  </h3>
-                  <p className="text-lg font-bold mt-1">
-                    ₹{selectedContract.amount?.toLocaleString()}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm text-slate-600 font-semibold">
-                    Start Date
-                  </h3>
-                  <p className="text-lg font-bold mt-1">
-                    {new Date(selectedContract.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-
-              {/* Submission Info */}
-              {selectedContract.status?.toUpperCase() === "WORK_SUBMITTED" && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="text-yellow-600 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold text-yellow-900">
-                        Work Submitted
-                      </p>
-                      <p className="text-sm text-yellow-800 mt-1">
-                        Your work is pending client review
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {selectedContract.submissionMessage && (
-                <div>
-                  <h3 className="text-sm text-slate-600 font-semibold">
-                    Submission Message
-                  </h3>
-                  <p className="text-slate-700 mt-2 bg-slate-50 p-4 rounded-lg">
-                    {selectedContract.submissionMessage}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Actions */}
-            <div className="border-t p-6 flex gap-3 flex-wrap">
-              <button
-                onClick={() => setSelectedContract(null)}
-                className="flex-1 min-w-[150px] px-6 py-3 border border-slate-300 rounded-xl font-medium hover:bg-slate-50 transition"
-              >
-                Close
-              </button>
-
-              {selectedContract.status?.toUpperCase() === "ACTIVE" && (
-                <button
-                  onClick={() => {
-                    setSubmitWorkModal(true);
-                  }}
-                  className="flex-1 min-w-[150px] px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition flex items-center justify-center gap-2"
-                >
-                  <Send size={16} />
-                  Submit Work
-                </button>
-              )}
-
-             
-
-              <button
-                onClick={() => navigate("/chat")}
-                className="flex-1 min-w-[150px] px-6 py-3 border border-indigo-600 text-indigo-600 hover:bg-indigo-50 rounded-xl font-medium transition"
-              >
-                Contact Client
-              </button>
-            </div>
+        {/* Client row */}
+        <div className="flex items-center gap-3 pb-5 mb-5 border-b border-slate-100">
+          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-semibold text-sm flex-shrink-0">
+            {selectedContract.client?.name?.charAt(0).toUpperCase()}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">
+              {selectedContract.client?.name}
+            </p>
+            <p className="text-xs text-slate-500">Client</p>
           </div>
         </div>
-      )}
+
+        {/* Status + ID */}
+        <div className="flex items-center justify-between mb-5">
+          {getStatusBadge(selectedContract.status)}
+          <span className="text-xs text-slate-400">Contract #{selectedContract.id}</span>
+        </div>
+
+        {/* Metric cards */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <DollarSign size={17} className="text-indigo-500 mb-2" />
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+              Contract amount
+            </p>
+            <p className="text-lg font-bold text-slate-900">
+              ₹{Number(selectedContract.amount).toLocaleString("en-IN")}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Budget: ₹{Number(selectedContract.Job?.budget).toLocaleString("en-IN")}
+            </p>
+          </div>
+
+          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <Clock size={17} className="text-amber-500 mb-2" />
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">
+              Delivery
+            </p>
+            <p className="text-lg font-bold text-slate-900">
+              {selectedContract.deliveryDays} days
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              {selectedContract.Job?.budgetType === "FIXED" ? "Fixed price" : "Hourly"}
+            </p>
+          </div>
+        </div>
+
+        {/* Due date banner */}
+        <div className="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 mb-4">
+          <Calendar size={17} className="text-orange-500 flex-shrink-0" />
+          <div>
+            <p className="text-xs font-semibold text-orange-800">
+              Due:{" "}
+              {new Date(selectedContract.dueDate).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+            <p className="text-xs text-orange-600">
+              Started{" "}
+              {new Date(selectedContract.startDate).toLocaleDateString("en-IN", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </p>
+          </div>
+        </div>
+
+        {/* Work submitted alert */}
+        {selectedContract.status?.toUpperCase() === "WORK_SUBMITTED" && (
+          <div className="flex items-start gap-3 bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-4">
+            <AlertCircle size={17} className="text-yellow-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-yellow-900">Work submitted</p>
+              <p className="text-xs text-yellow-700 mt-0.5">
+                Pending client review
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Submission message */}
+        {selectedContract.submissionMessage && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">
+              Submission message
+            </p>
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 text-sm text-slate-600 leading-relaxed">
+              {selectedContract.submissionMessage}
+            </div>
+          </div>
+        )}
+
+        {/* Info row */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
+            <p className="text-xs text-slate-400 mb-1">Budget type</p>
+            <p className="text-sm font-semibold text-slate-900">
+              {selectedContract.Job?.budgetType === "FIXED" ? "Fixed price" : selectedContract.Job?.budgetType}
+            </p>
+          </div>
+          <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200">
+            <p className="text-xs text-slate-400 mb-1">Job status</p>
+            <p className="text-sm font-semibold text-slate-900">
+              {selectedContract.Job?.status?.replace("_", " ")}
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Footer */}
+      <div className="px-7 py-4 border-t border-slate-100 bg-slate-50 grid grid-cols-3 gap-2">
+        <button
+          onClick={() => setSelectedContract(null)}
+          className="h-10 rounded-xl border border-slate-200 bg-white text-slate-600 text-sm font-medium hover:bg-slate-50 transition flex items-center justify-center gap-1.5"
+        >
+          <X size={13} /> Close
+        </button>
+
+        {selectedContract.status?.toUpperCase() === "ACTIVE" && (
+          <button
+            onClick={() => setSubmitWorkModal(true)}
+            className="h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold transition flex items-center justify-center gap-1.5"
+          >
+            <Send size={13} /> Submit work
+          </button>
+        )}
+
+        <button
+          onClick={() => navigate("/chat")}
+          className={`h-10 rounded-xl border border-indigo-200 bg-white text-indigo-600 hover:bg-indigo-50 text-sm font-semibold transition flex items-center justify-center gap-1.5 ${
+            selectedContract.status?.toUpperCase() !== "ACTIVE" ? "col-span-2" : ""
+          }`}
+        >
+          <MessageCircle size={13} /> Contact client
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
 
       {/* Submit Work Modal */}
       {submitWorkModal && (

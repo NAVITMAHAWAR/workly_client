@@ -1,12 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { Building, Mail, Phone, Globe, Briefcase, MapPin, Loader } from "lucide-react";
+import {
+  Building,
+  Phone,
+  Globe,
+  Briefcase,
+  MapPin,
+  Loader,
+} from "lucide-react";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 
 const CreateClientProfile = () => {
   const navigate = useNavigate();
+  const { updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -61,13 +70,11 @@ const CreateClientProfile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check file size (5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error("Image must be less than 5MB");
         return;
       }
 
-      // Check file type
       if (!file.type.startsWith("image/")) {
         toast.error("Please select an image file");
         return;
@@ -75,7 +82,6 @@ const CreateClientProfile = () => {
 
       setProfileImage(file);
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -87,7 +93,6 @@ const CreateClientProfile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate required fields
     if (
       !formData.companyName.trim() ||
       !formData.industry ||
@@ -105,14 +110,12 @@ const CreateClientProfile = () => {
     try {
       const data = new FormData();
 
-      // Add text fields
       Object.keys(formData).forEach((key) => {
         if (formData[key]) {
           data.append(key, formData[key]);
         }
       });
 
-      // Add image if selected
       if (profileImage) {
         data.append("profileImage", profileImage);
       }
@@ -131,16 +134,14 @@ const CreateClientProfile = () => {
       if (response.data.success) {
         toast.success("Profile completed successfully!");
 
-        // Update local storage
-        const user = JSON.parse(localStorage.getItem("user"));
-        user.profile_Completed = true;
-        localStorage.setItem("user", JSON.stringify(user));
-
-        // Dispatch event
+        const updatedUserData = response.data.data.user;
+        localStorage.setItem("user", JSON.stringify(updatedUserData));
+        updateUser(updatedUserData);
         window.dispatchEvent(new Event("authChange"));
 
-        // Redirect to dashboard
-        navigate("/clientDashboard");
+        setTimeout(() => {
+          navigate("/clientDashboard", { replace: true });
+        }, 100);
       }
     } catch (error) {
       const message =
@@ -161,18 +162,18 @@ const CreateClientProfile = () => {
         transition={{ duration: 0.5 }}
         className="max-w-2xl mx-auto"
       >
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <Building size={32} className="text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900">Complete Your Profile</h1>
+          <h1 className="text-4xl font-bold text-slate-900">
+            Complete Your Profile
+          </h1>
           <p className="text-slate-600 mt-2">
             Tell us about your company to get started
           </p>
         </div>
 
-        {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Profile Image Upload */}
@@ -445,7 +446,6 @@ const CreateClientProfile = () => {
           </form>
         </div>
 
-        {/* Info Box */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-sm text-blue-800">
             💡 Your profile helps freelancers understand your company better.
